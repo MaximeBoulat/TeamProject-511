@@ -1,0 +1,6 @@
+**/.DS_Store
+.cursorrules
+/.github
+__pycache__/
+build/
+/.venv/
