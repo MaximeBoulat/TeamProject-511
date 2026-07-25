@@ -1,0 +1,5 @@
+experiment,model,train_files,train_windows,acc_window,f1_macro_window,acc_piece,f1_macro_piece,precision_macro_piece,recall_macro_piece
+cap75,LSTM,210,3422,0.3811,0.3808,0.5111,0.503,0.5322,0.5152
+cap75,CNN,210,3207,0.2815,0.1098,0.2444,0.0982,0.0611,0.25
+full,LSTM,1123,15833,0.7086,0.6399,0.8631,0.7842,0.8004,0.7764
+full,CNN,1123,14616,0.7509,0.6836,0.8963,0.8222,0.8318,0.8157
