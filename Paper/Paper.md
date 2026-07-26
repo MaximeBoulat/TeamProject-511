@@ -63,6 +63,8 @@ Both models end in a softmax over the 4 composers and are trained with sparse ca
 - **Reproducibility.** All random seeds (Python, NumPy, TensorFlow) fixed at 42; models are rebuilt with re-seeded initializers for every grid-search configuration.
 - **Environment.** TensorFlow/Keras with `pretty_midi` for parsing and scikit-learn for metrics; the team validated a local WSL2 + CUDA GPU setup, which required pre-loading the pip-installed NVIDIA libraries before importing TensorFlow.
 
+![](Resources/TrainingGraphs.png)
+
 
 
 # Model Evaluation
@@ -83,6 +85,9 @@ Evaluation is on the held-out test split, never used during training or model se
 
 Chance baseline (4 classes): 25%. The CNN reaches 90.1% piece-level accuracy — 3.6× above chance — while the LSTM reaches 80.6% — 3.2× above chance. Piece-level aggregation lifts both models well above their window-level scores (LSTM +14.9 points, CNN +14.0 points), consistent with averaging out independent per-window errors. The CNN is the clear winner on every metric at both levels.
 
+![](Resources/Results.png)
+
+
 **Per-composer breakdown (piece level, 242 test pieces):**
 
 LSTM (accuracy 0.81):
@@ -95,6 +100,8 @@ LSTM (accuracy 0.81):
 | Chopin    | 0.67      | 0.80   | 0.73 | 20      |
 | Mozart    | 0.57      | 0.61   | 0.59 | 38      |
 
+![](Resources/ConfusionMatrixLSTM.png)
+
 
 CNN (accuracy 0.90):
 
@@ -106,7 +113,7 @@ CNN (accuracy 0.90):
 | Chopin    | **0.94**  | 0.85     | 0.89 | 20      |
 | Mozart    | 0.78      | 0.76     | 0.77 | 38      |
 
-
+![](Resources/ConfusionMatrixCNN.png)
 
 
 # Model Optimization
