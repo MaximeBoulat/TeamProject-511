@@ -19,8 +19,13 @@ First, we discuss data collection and pre-processing, then the feature extractio
 
 # Data Collection
 
+What do we talk about here
+
+
+The data used in the experiment was obtained from public dataset consisting of 3,929 midi files organized by composer (Fedorak, 2019). The 
+
 - **Source.** Kaggle dataset `[blanderbuss/midi-classic-music](https://www.kaggle.com/datasets/blanderbuss/midi-classic-music)` (Fedorak, 2019) — a corpus of classical MIDI files spanning 175 composers (3,929 files). Per the project instructions, we filter to four target composers: **Bach, Beethoven, Chopin, and Mozart**, yielding **1,637 MIDI files**.
-- **No file cap.** An earlier version of this pipeline capped the working set to 75 files per composer (300 files total) because fully materializing augmented piano-roll windows as float32 arrays would exceed 10 GB of RAM. This version stores windows unaugmented and in compact dtypes (`int16` pitch tokens, `uint8` binary piano-roll frames), and applies pitch-transposition augmentation on the fly inside a `tf.data` pipeline instead of pre-computing four transposed copies per window. That removes the RAM bottleneck, so the **full corpus is used directly**.
+
 - **Format.** MIDI is symbolic, not audio: each file is a list of timed note events (note-on/note-off, pitch 0–127, velocity) per instrument. This removes the need for audio signal processing and lets us derive features directly from note events.
 - **Labels.** The composer label is inferred from the file path (each composer has a dedicated folder; the parser applies an exactly-one-match rule so ambiguous paths are excluded).
 - **Per-composer profile:**
@@ -176,6 +181,8 @@ The LSTM selected `lr=0.001, dropout=0.3`; the CNN selected `lr=0.0005, dropout=
 # References
 
 Dieleman, S., & Schrauwen, B. (2014). End-to-end learning for music audio. In *2014 IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP)* (pp. 6964–6968). IEEE.
+
+Fedorak, B. (2019). *midi_classic_music* [Data set]. Kaggle. https://www.kaggle.com/datasets/blanderbuss/midi-classic-music
 
 Foote, J. (1997). Content-based retrieval of music and audio. *Multimedia Storage and Archiving Systems II*, 138–147.
 
