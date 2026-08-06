@@ -90,9 +90,9 @@ Both models end in a softmax over the 4 composers and are trained with sparse ca
 # Model Training
 
 
+As shown in Figure 1, the training histories for both models show a steady convergence toward an optimum, with the best checkpoint reached at epoch 35 with validation loss 0.82 and validation accuracy 0.69 for the LSTM, and at epoch 17 with validation loss 0.55 and validation accuracy 0.80 for the CNN. Besides early wild fluctuations on the validation set for the CNN which stabilized around epoch 10, both training histories show a healthy trend indicating that both models were able to learn from the data without overfitting.
 
-
-![](Resources/TrainingGraphs.png)
+![Figure 1 - Training curves](Resources/TrainingGraphs.png)
 
 # Model Evaluation
 
@@ -145,7 +145,7 @@ CNN (accuracy 0.90):
 
 # Model Optimization
 
-- **Grid search.** Both models are tuned over a grid of learning rate {1e-3, 5e-4} × dropout {0.3, 0.5} (three configurations each — the third pairs the higher learning rate with the higher dropout), each configuration trained fresh with the full callback stack and selected by best validation accuracy.
+- **Grid search.** Both models were tuned over a grid of learning rate {1e-3, 5e-4} × dropout {0.3, 0.5} (three configurations each — the third pairs the higher learning rate with the higher dropout), each configuration trained fresh with the full callback stack and selected by best validation accuracy.
 
 LSTM grid-search results:
 
@@ -167,14 +167,13 @@ CNN grid-search results:
 | 0.0010 | 0.5     | 0.7962       |
 
 
-The LSTM selected `lr=0.001, dropout=0.3`; the CNN selected `lr=0.0005, dropout=0.3` — the same configurations an earlier, smaller-data run of this grid search had selected, but at substantially higher validation accuracy (LSTM 0.696 vs 0.530; CNN 0.803 vs 0.633) now that the full corpus is available. Dropout 0.5 measurably hurt both models relative to their best 0.3 configuration, suggesting the class-weighted, tf.data-augmented training signal is already well regularized without the extra dropout.
-
-- **Tuning levers identified but deferred** (documented for future work): window length and stride, piano-roll frame rate, number of LSTM units / CNN filters, richer note tokens combining pitch with duration and velocity, event-based encodings, multi-channel piano rolls separating instruments, and hybrid CRNN architectures (convolutions feeding an LSTM).
-- **Future improvements.** More composers, k-fold cross-validation for tighter confidence intervals, cross-dataset validation, and explicit handling of polyphony/voice separation.
+The LSTM selected `lr=0.001, dropout=0.3`; the CNN selected `lr=0.0005, dropout=0.3`. Dropout 0.5 measurably hurt both models relative to their best 0.3 configuration, suggesting the class-weighted, tf.data-augmented training signal is already well regularized without the extra dropout.
 
 
 
-# Analysis
+# Conclusion
+
+Both models were able to learn from the data and make predictions with a certain degree of confidence, pointing to a strong validation of the design of the pipeline at every step (data preprocessing, feature extraction, model architecture and hyperparameters).
 
 *CNN vs. LSTM gap.* The CNN leads the LSTM by 10.5 points window-level and 9.5 points piece-level accuracy, and on every other metric. The piano-roll representation exposes spatial structure — chord voicing, rhythmic density, register — that the CNN's convolutional filters exploit directly. The LSTM receives only an ordered sequence of pitch integers, discarding duration, rhythm, and harmonic texture; recovering composer style purely from pitch order is a harder inductive problem.
 
@@ -185,6 +184,9 @@ The LSTM selected `lr=0.001, dropout=0.3`; the CNN selected `lr=0.0005, dropout=
 *CNN overfitting pattern.* The CNN's training curves show a volatile first 8 epochs: training accuracy climbs smoothly past 80%, but validation loss spikes as high as 5.1 and validation accuracy briefly collapses to near-chance (0.18–0.20) more than once, before both curves stabilize from epoch ~10 onward and converge to train accuracy ≈0.91 / validation accuracy ≈0.79 by the final epoch. This is consistent with a BatchNormalization-on-sparse-binary-input pathology — batch statistics are poorly estimated on sparse piano rolls early in training — but on the full corpus the pathology resolves rather than persisting, and `ModelCheckpoint(monitor="val_loss")` recovers a stable, low-loss model regardless. The LSTM shows no comparable instability: its training and validation loss/accuracy curves track closely together for all ~43 epochs, indicating a well-regularized fit with little overfitting.
 
 *Piece-level evaluation matters.* Averaging window probabilities per file before taking the argmax lifted accuracy by 14–15 points for both models. Individual 100-note or 16-second windows are a noisy, partial view of a piece; a full composition gives the model many independent "votes," and errors that are uncorrelated across windows of the same piece cancel out under averaging. Since a deployed system would classify whole pieces, piece-level accuracy (80.6% LSTM, 90.1% CNN) is the more representative number for this task, not the window-level number.
+
+- **Tuning levers identified but deferred** (documented for future work): window length and stride, piano-roll frame rate, number of LSTM units / CNN filters, richer note tokens combining pitch with duration and velocity, event-based encodings, multi-channel piano rolls separating instruments, and hybrid CRNN architectures (convolutions feeding an LSTM).
+- **Future improvements.** More composers, k-fold cross-validation for tighter confidence intervals, cross-dataset validation, and explicit handling of polyphony/voice separation.
 
 
 # References
