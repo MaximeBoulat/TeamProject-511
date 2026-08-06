@@ -3,7 +3,7 @@
     "configurations": [
         
         {
-            "name": "LIDAR project",
+            "name": "Composers project",
             "type": "python",
             "request": "launch",
             "program": "${workspaceFolder}/src/main.py",
