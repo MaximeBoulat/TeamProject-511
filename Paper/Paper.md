@@ -101,7 +101,6 @@ As shown in Figure 1, the training histories for both models show a steady conve
 
 ![](Resources/TrainingGraphs.png)
 
-*Note.* Top row: LSTM training and validation loss (left) and accuracy (right). Bottom row: CNN training and validation loss (left) and accuracy (right).
 
 # Model Evaluation
 
@@ -118,15 +117,13 @@ Table 3 summarizes the final model comparison on the test set. The chance baseli
 | LSTM  | 0.6563     | 0.5655          | 0.6446             | 0.8058     | 0.7442        | 0.6819        | 0.6875         |
 | CNN   | **0.7612** | **0.7001**      | **0.7551**         | **0.9008** | **0.8591**    | **0.8219**    | **0.8393**     |
 
-*Note.* Acc = accuracy; F1 = F1 score; P = precision; R = recall. Piece-level precision, recall, and F1 use macro averaging. Bold indicates the higher value between the two models for each metric.
+*Note.* Acc = accuracy; F1 = F1 score; P = precision; R = recall. Piece-level precision, recall, and F1 use macro averaging. 
 
 **Figure 2**
 
 *Window- and Piece-Level Test Accuracy for the LSTM and CNN Models*
 
 ![](Resources/Results.png)
-
-*Note.* The dashed line marks the four-class chance baseline (25%).
 
 Table 4 and Table 5 present the piece-level per-composer breakdown for the LSTM and CNN, respectively, and Figure 3 and Figure 4 show the corresponding window- and piece-level confusion matrices.
 
@@ -141,7 +138,6 @@ Table 4 and Table 5 present the piece-level per-composer breakdown for the LSTM 
 | Chopin    | 0.67      | 0.80   | 0.73 | 20      |
 | Mozart    | 0.57      | 0.61   | 0.59 | 38      |
 
-*Note.* N = 242 test pieces. Overall piece-level accuracy = 0.81.
 
 **Figure 3**
 
@@ -149,7 +145,6 @@ Table 4 and Table 5 present the piece-level per-composer breakdown for the LSTM 
 
 ![](Resources/ConfusionMatrixLSTM.png)
 
-*Note.* Left: window-level confusion matrix. Right: piece-level confusion matrix. Rows represent the true composer; columns represent the predicted composer.
 
 **Table 5**
 
@@ -162,7 +157,6 @@ Table 4 and Table 5 present the piece-level per-composer breakdown for the LSTM 
 | Chopin    | 0.94      | 0.85     | 0.89 | 20      |
 | Mozart    | 0.78      | 0.76     | 0.77 | 38      |
 
-*Note.* N = 242 test pieces. Overall piece-level accuracy = 0.90.
 
 **Figure 4**
 
@@ -170,7 +164,6 @@ Table 4 and Table 5 present the piece-level per-composer breakdown for the LSTM 
 
 ![](Resources/ConfusionMatrixCNN.png)
 
-*Note.* Left: window-level confusion matrix. Right: piece-level confusion matrix. Rows represent the true composer; columns represent the predicted composer.
 
 # Model Optimization
 
@@ -186,7 +179,6 @@ Both models were tuned over a grid of learning rate {1e-3, 5e-4} × dropout {0.3
 | 0.0005 | 0.3     | 0.6812       |
 | 0.0010 | 0.5     | 0.6215       |
 
-*Note.* lr = learning rate. Bold indicates the selected (best-performing) configuration.
 
 **Table 7**
 
@@ -198,7 +190,6 @@ Both models were tuned over a grid of learning rate {1e-3, 5e-4} × dropout {0.3
 | 0.0005 | 0.3     | **0.8026**   |
 | 0.0010 | 0.5     | 0.7962       |
 
-*Note.* lr = learning rate. Bold indicates the selected (best-performing) configuration.
 
 The LSTM selected `lr = 0.001, dropout = 0.3`; the CNN selected `lr = 0.0005, dropout = 0.3`. Dropout of 0.5 measurably hurt both models relative to their best 0.3 configuration, suggesting the class-weighted, augmented training signal is already well regularized without the extra dropout.
 
