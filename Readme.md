@@ -1,6 +1,6 @@
 # Introduction
 
-This repo contains the source code and the technical report for USD's AAI-511 group project for Team . 
+This repo contains the source code and the technical report for USD's AAI-511 group project for Team 4. 
 
 The repo is organized as follows:
 
