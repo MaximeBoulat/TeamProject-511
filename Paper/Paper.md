@@ -26,7 +26,8 @@ Then the entire folder was traversed and everty track inventoried into a trackin
 
 This allowed us to perform some exploratory analysis, as illustrated in Table 1.
 
-- **Per-composer profile:**
+**Table 1**
+Per composer profile
 
 
 | Composer  | Full corpus files | Usable (after cleaning) | Median duration (s) | Mean notes/s | Mean instruments |
@@ -52,7 +53,18 @@ It is important to note that the conversion of midi tracks into windows was perf
 
 In addition to windowing, the data was augmented using random pitch transposition during training with each window getting one random draw from `{-2, -1, 0, +1, +2}` per epoch.
 
-Finaly, the remaining class imbalance was mitigated by using reverse frequency weights based on the frequencies observed in the training windows. LSTM training windows: Bach 8,299 (51.9%), Mozart 3,305 (20.7%), Beethoven 2,732 (17.1%), Chopin 1,666 (10.4%) — class weights {Bach 0.482, Beethoven 1.464, Chopin 2.401, Mozart 1.21}. CNN training windows: Bach 7,371 (50.0%), Mozart 3,260 (22.1%), Beethoven 2,679 (18.2%), Chopin 1,428 (9.7%) — class weights {Bach 0.5, Beethoven 1.375, Chopin 2.58, Mozart 1.13}.
+Finaly, the remaining class imbalance was mitigated by using reverse frequency weights based on the frequencies observed in the training windows as displayed in Table 2. 
+
+
+**Table 2**
+Training window class frequencies and inverse-frequency weights
+
+| Composer  | LSTM windows | LSTM % | LSTM weight | CNN windows | CNN % | CNN weight |
+| --------- | ------------ | ------ | ----------- | ----------- | ----- | ---------- |
+| Bach      | 8,299        | 51.9%  | 0.482       | 7,371       | 50.0% | 0.500      |
+| Beethoven | 2,732        | 17.1%  | 1.464       | 2,679       | 18.2% | 1.375      |
+| Chopin    | 1,666        | 10.4%  | 2.401       | 1,428       | 9.7%  | 2.580      |
+| Mozart    | 3,305        | 20.7%  | 1.210       | 3,260       | 22.1% | 1.130      |
 
 
 # Feature Extraction
@@ -77,13 +89,10 @@ Both models end in a softmax over the 4 composers and are trained with sparse ca
 
 # Model Training
 
-Both models were trained with identical callback stacks: early stopping on validation loss (patience 8, best-weights restored on halt), a ReduceLROnPlateau schedule (halve the learning rate after 3 stalled epochs, floor at 1e-5), and a checkpoint saving the best-validation-loss weights to disk. The resulting training curves, shown in Figure 1, look as if they belong to two different domains.
-
-The LSTM's training is unremarkable, and that is the point. Across all three hyperparameter configurations validation loss descended alongside training loss from the first epoch, and validation accuracy tracked within a few points of training accuracy — initially slightly above it. The early inversion reflects the class weights: windows from Chopin carry a penalty 2.4× heavier than Bach, which drags the training accuracy metric down relative to what a uniformly weighted run would show, even as the model's discriminative ability develops. ReduceLROnPlateau fired in successive steps, each halving the learning rate and producing a modest tightening of both curves. The best configuration (lr=1e-3, dropout=0.3) ran for approximately 43 epochs before early stopping, both loss curves converging to roughly 0.82 and both accuracy curves settling around 0.68–0.70. No single epoch constitutes an inflection point; the descent is gradual throughout.
-
-The CNN is the opposite. From epoch 1, training accuracy climbed smoothly and almost monotonically — 0.60, 0.70, toward 0.91 — an uninterrupted ascent suggesting the convolutional filters found structure immediately and compounded on it. Validation, however, spent the first ten epochs in freefall. Validation loss spiked to 5.1 at epoch 3, recovered, spiked again near epoch 7, and validation accuracy crashed to 0.18–0.22 on more than one occasion — below random chance for a four-class problem. The cause is the BatchNormalization applied after each convolutional block. During training, each mini-batch normalizes using its own per-batch statistics, which are internally self-consistent. During validation, the model uses accumulated running statistics built up from all batches seen so far, and early in training those statistics are poorly estimated on sparse binary inputs where most activations are zero. The running statistics are simply wrong, and they shift the validation distribution out from under the model. This pathology resolves around epoch 10: at that point both curves lock into alignment, and the model spends the remaining ~14 epochs in steady joint improvement toward 0.79 validation accuracy. That convergence at epoch 10 is the only true inflection point of the whole training run, and it is unmistakable on the graph. The LSTM has no equivalent moment.
 
 
+
+![](Resources/TrainingGraphs.png)
 
 # Model Evaluation
 
