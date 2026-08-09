@@ -205,7 +205,6 @@
 <div class="page page-break">
   <p class="paper-title-repeat">Predicting Music Composers using Deep Learning Models</p>
 
-  <h1>Introduction and Literature Review</h1>
 
   <p>Music as a medium a offers a unique and fertile playground for data science and deep learning experimentation. Not only is it naturally well suited to be broken down into bite sized chunks, but it comes pre-labeled, there exists a large quantity of it in the wild and musicians carry their unique identifying information across their musicography.</p>
 
@@ -245,7 +244,7 @@
 
   <h1>Data Pre-processing</h1>
 
-  <p>In order to maximize the standardization and the quantity of samples that could be extracted from the MIDI tracks, it was decided to adopt a windowing strategy where each track was broken down into overlapping chunks of fixed length. These chunks, called windows, formed the basis of the sample space that was used to train and test the models in this experiment.</p>
+  <p>In order to maximize the quantity, consistency and diversity of samples that could be extracted from the MIDI tracks, it was decided to adopt a windowing strategy where each track was broken down into overlapping chunks of fixed length. These chunks, called windows, formed the basis of the sample space that was used to train and test the models in this experiment.</p>
 
   <p>Because each model type has different data requirements, the way the windows were created from the raw files differed according to which model they were intended for.</p>
 
@@ -291,7 +290,7 @@
 
   <h1>Model Training</h1>
 
-  <p>As shown in Figure 1, the training histories for both models show a steady convergence toward an optimum, with the best checkpoint reached at epoch 35 with validation loss 0.82 and validation accuracy 0.69 for the LSTM, and at epoch 17 with validation loss 0.55 and validation accuracy 0.80 for the CNN. Besides early wild fluctuations on the validation set for the CNN which stabilized around epoch 10, both training histories show a healthy trend indicating that both models were able to learn from the data without overfitting.</p>
+  <p>As shown in Figure 1, both models converged during training. The LSTM reached its best-performing checkpoint at epoch 35, with a validation loss of 0.82 and validation accuracy of 0.69, whereas the CNN reached its best-performing checkpoint at epoch 17, with a validation loss of 0.55 and validation accuracy of 0.80. The CNN exhibited greater fluctuations in validation loss and accuracy during the early epochs, which stabilized by approximately epoch 10. For both models, the training and validation loss and accuracy curves followed similar trends throughout training, with no sustained divergence between training and validation performance, indicating good generalization.</p>
 
   <p class="figure-label">Figure 1</p>
   <p class="figure-title">Training and Validation Loss and Accuracy Curves for the LSTM and CNN Models</p>
@@ -402,7 +401,7 @@
 
   <p>With a piece-level macro F1 of ~.69 for the LSTM and ~.84 for the CNN, we have demonstrated the viability of using deep learning to do composer recognition on MIDI tracks. In addition we have demonstrated the effectiveness of packaging the raw data into fixed length overlapping windows, of using designated data formats (note sequences and 2D snapshots) for each model type and of augmenting the data by using transposition.</p>
 
-  <p>Our research shows that the CNN leads the LSTM by 10.5 points window-level and 9.5 points piece-level accuracy, and on every other metric. The piano-roll representation exposes spatial structure &mdash; chord voicing, rhythmic density, register &mdash; that the CNN&rsquo;s convolutional filters exploit directly. The LSTM receives only an ordered sequence of pitch integers, discarding duration, rhythm, and harmonic texture; recovering composer style purely from pitch order is a harder inductive problem.</p>
+  <p>Our research shows that the CNN leads the LSTM by 10.5 points window-level and 9.5 points piece-level accuracy, and on every other metric. This is due to the fact that 2D images preserve more unique information about the underlying structure of the music than a 1D sequences of pitch tokens.</p>
 
   <p>The class-level results showed that sample availability did not automatically translate to better performance, with Beethoven getting the lowest scores on both LSTM (0.52) and CNN (0.72), despite not being the composer with the fewest files and windows (Chopin was). The confusion matrices show that most of Beethoven&rsquo;s misclassified pieces were attributed to Mozart (10 of 20 LSTM errors, 6 of 10 CNN errors), pointing to ambiguity between both composers that the existing setup could not resolve.</p>
 
