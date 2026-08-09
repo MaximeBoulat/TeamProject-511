@@ -79,7 +79,7 @@ The conversion of MIDI tracks into windows already hints at the direction in whi
 
 For the LSTM, all the notes except for percussion were extracted from the MIDI file, arranged as a vector of pitch values sorted by time and everything else was discarded. This was assumed to be enough to preserve the underlying structure of the music and its composer's specific style.
 
-For the CNN, all the notes (except percussion) were positioned on a 2D canvas defined by time on the x-axis pitch on the y axis, effectively turning the windows into images.
+For the CNN, all the notes (except percussion) were positioned on a 2D canvas defined by time on the x-axis pitch on the y-axis, effectively turning the windows into images.
 
 Each window also carried the id of its source file, which is what made piece-level evaluation (Model Evaluation, below) possible. 
 

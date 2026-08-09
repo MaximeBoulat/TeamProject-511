@@ -277,7 +277,7 @@
 
   <p>For the LSTM, all the notes except for percussion were extracted from the MIDI file, arranged as a vector of pitch values sorted by time and everything else was discarded. This was assumed to be enough to preserve the underlying structure of the music and its composer&rsquo;s specific style.</p>
 
-  <p>For the CNN, all the notes (except percussion) were positioned on a 2D canvas defined by time on the x-axis pitch on the y axis, effectively turning the windows into images.</p>
+  <p>For the CNN, all the notes (except percussion) were positioned on a 2D canvas defined by time on the x-axis pitch on the y-axis, effectively turning the windows into images.</p>
 
   <p>Each window also carried the id of its source file, which is what made piece-level evaluation (Model Evaluation, below) possible.</p>
 
@@ -402,7 +402,7 @@
 
   <p>With a piece-level macro F1 of ~.69 for the LSTM and ~.84 for the CNN, we have demonstrated the viability of using deep learning to do composer recognition on MIDI tracks. In addition we have demonstrated the effectiveness of packaging the raw data into fixed length overlapping windows, of using designated data formats (note sequences and 2D snapshots) for each model type and of augmenting the data by using transposition.</p>
 
-  <p>The CNN leads the LSTM by 10.5 points window-level and 9.5 points piece-level accuracy, and on every other metric. The piano-roll representation exposes spatial structure &mdash; chord voicing, rhythmic density, register &mdash; that the CNN&rsquo;s convolutional filters exploit directly. The LSTM receives only an ordered sequence of pitch integers, discarding duration, rhythm, and harmonic texture; recovering composer style purely from pitch order is a harder inductive problem.</p>
+  <p>Our research shows that the CNN leads the LSTM by 10.5 points window-level and 9.5 points piece-level accuracy, and on every other metric. The piano-roll representation exposes spatial structure &mdash; chord voicing, rhythmic density, register &mdash; that the CNN&rsquo;s convolutional filters exploit directly. The LSTM receives only an ordered sequence of pitch integers, discarding duration, rhythm, and harmonic texture; recovering composer style purely from pitch order is a harder inductive problem.</p>
 
   <p>The class-level results showed that sample availability did not automatically translate to better performance, with Beethoven getting the lowest scores on both LSTM (0.52) and CNN (0.72), despite not being the composer with the fewest files and windows (Chopin was). The confusion matrices show that most of Beethoven&rsquo;s misclassified pieces were attributed to Mozart (10 of 20 LSTM errors, 6 of 10 CNN errors), pointing to ambiguity between both composers that the existing setup could not resolve.</p>
 
