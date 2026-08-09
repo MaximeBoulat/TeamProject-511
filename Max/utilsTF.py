@@ -25,10 +25,9 @@ def load_cuda_libraries():
 import os
 
 def configure_tensorflow():
-    # --xla_gpu_strict_conv_algorithm_picker was removed from XLA (TF >= ~2.17).
-    # Disabling XLA autotuning is the current workaround for WSL's
-    # "Autotuning failed ... No valid config found" conv errors.
-    os.environ['XLA_FLAGS'] = '--xla_gpu_autotune_level=0'
+
+    os.environ['XLA_FLAGS'] = '--xla_gpu_strict_conv_algorithm_picker=false'
+
     os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
 import tensorflow as tf
