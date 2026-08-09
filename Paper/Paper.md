@@ -15,9 +15,9 @@ In this paper, we develop a music classification pipeline with deep learning mod
 
 # Introduction and literature review
 
-Music as a medium a offers a unique and fertile playground for data science and deep learning experimentation. The reason why is that it is naturally well suited to be broken down into bite sized chunks for analysis, it comes pre-labeled, there exists a large quantity of it in the wild, its underlying data representation is continuous and messy yet predictable and uniquely identifying patterns are repeated for each musician across their musicography.
+Music as a medium a offers a unique and fertile playground for data science and deep learning experimentation. Not only is it naturally well suited to be broken down into bite sized chunks, but it comes pre-labeled, there exists a large quantity of it in the wild and musicians carry their unique identifying information across their musicography.
 
-The science of analyzing music to extract meaningful information from it (Musical Information Retrieval, MIR) finds its origins in the science of speech recognition. Before the advent of Deep Learning, and as is the case for other fields of study such as computer vision and Natural Language Processing, researchers relied heavily on handcrafted features which were either used directly to compare against known thresholds, or used to train classical classifiers such as Logistic Regression, Decision Trees or Support Vector Machines. Foote (1997) proposed to use MFCC coefficients to construct a learning tree vector quantizer, which could then be used to produce a unique signature for each track. Similarity search could then be performed on the resulting signatures. Tzanetakis and Cook (2002) outlined a series of mathematical formulas to extract uniquely identifying features from musical tracks for genre classification. 
+The science of analyzing music to extract meaningful information from it (Musical Information Retrieval, MIR) is not new and finds its origins in the science of speech recognition. Before the advent of Deep Learning, and as is the case for other fields of study such as computer vision and Natural Language Processing, researchers relied heavily on handcrafted features which were either used directly to compare against known thresholds, or used to train classical classifiers such as Logistic Regression, Decision Trees or Support Vector Machines. Foote (1997) proposed to use MFCC coefficients to construct a learning tree vector quantizer, which could then be used to produce a unique signature for each track. Similarity search could then be performed on the resulting signatures. Tzanetakis and Cook (2002) outlined a series of mathematical formulas to extract uniquely identifying features from musical tracks for genre classification. 
 
 The deep learning revolution kicked off by Krizhevsky et al. (2012) with AlexNet extended to MIR and CNNs became the de facto gold standard for music classification (with musical track data converted to "image" data). However it was widely believed that the raw audio data needed to be converted to a spectrogram before ingestion. Dieleman and Schrauwen (2014), were the first to demonstrate that CNNs were able to process raw music audio directly and learn how to extract the prominent features directly from it.
 
@@ -46,19 +46,19 @@ This allowed us to perform some exploratory analysis, as illustrated in Table 1.
 | Chopin    | 136               | 132                     | 158                 | 11.2         | 2.5              |
 | Mozart    | 257               | 254                     | 348                 | 13.8         | 7.3              |
 
-Bach's file count (1,024) dwarfs the other three composers combined (613), while its median piece duration (77 s) is the shortest by a wide margin. This tension — many short Bach files vs. fewer, longer files for the other three composers — is the central driver of the class-imbalance story below.
+Bach's file count (1,024) dwarfs the other three composers combined (613), while its median piece duration (77 s) is the shortest by a wide margin. The class imbalance was addressed as part of data preprocessing.
 
 # Data Pre-processing
 
-In order to maximize the standardization and the quantity of samples that could be extracted from the MIDI tracks, it was decided to adopt a windowing strategy where each track was broken down into chunks of fixed length with overlap between them and were made to inherit their track's class label. These chunks, called windows, formed the basis of the sample space that was used to train the models in this experiment.
+In order to maximize the standardization and the quantity of samples that could be extracted from the MIDI tracks, it was decided to adopt a windowing strategy where each track was broken down into overlapping chunks of fixed length. These chunks, called windows, formed the basis of the sample space that was used to train and test the models in this experiment.
 
-Because each model type has different requirements in terms of input, the way the windows were created from the raw files differed according to which model they were intended for.
+Because each model type has different data requirements, the way the windows were created from the raw files differed according to which model they were intended for.
 
-For the LSTM, the windows were measured by quantity of notes, since the LSTM would ingest flat vectors. Each window was made to be 100 notes long with a stride of 50. For the CNN, since the input format would be a 2D image representation of the data, a fixed interval served as the boundary. Each window was made to be 16 seconds long (128 frames at 8 fps), with a stride of 64 frames.
+For the LSTM, the windows were measured by quantity of notes, since an LSTM ingests a sequence of values. Each window was made to be 100 notes long with a stride of 50. For the CNN, since the input format would be a 2D image representation of the data, a fixed time interval served as the boundary, with each window made to span 16 seconds (128 frames at 8 fps), with a stride of 64 frames.
 
 It is important to note that the conversion of MIDI tracks into windows was performed after the train-test split, to avoid leakage of data from the same track across training and testing. In addition the train-test split was performed using a stratified split to preserve the class representation of the original dataset.
 
-In addition to windowing, the data was augmented using random pitch transposition during training with each window getting one random draw from `{-2, -1, 0, +1, +2}` per epoch.
+In addition to windowing, the data was augmented using random pitch transposition during training with each window getting transposed by a randomly selected factor between -2 and 2 for each epoch.
 
 Finally, the remaining class imbalance was mitigated by using inverse-frequency weights based on the frequencies observed in the training windows, as shown in Table 2.
 
@@ -75,21 +75,23 @@ Finally, the remaining class imbalance was mitigated by using inverse-frequency 
 
 # Feature Extraction
 
-The conversion of MIDI tracks into windows explained above already hints at the kind of feature extraction that was performed for each model. For the LSTM, all the notes except for percussion were extracted from the MIDI file and were arranged as a vector of pitch values sorted by time and everything else was discarded. This was assumed to be enough to preserve the underlying structure of the music and its composer's specific style.
+The conversion of MIDI tracks into windows already hints at the direction in which feature extraction went in this project. 
 
-For the CNN, all the notes (except percussion) were arranged on a 2D canvas where the x axis was time and the y axis was the range of possible pitch values. All the notes were extracted from the MIDI files and displayed as boolean flags on the canvas, effectively turning the MIDI tracks into images.
+For the LSTM, all the notes except for percussion were extracted from the MIDI file, arranged as a vector of pitch values sorted by time and everything else was discarded. This was assumed to be enough to preserve the underlying structure of the music and its composer's specific style.
+
+For the CNN, all the notes (except percussion) were positioned on a 2D canvas defined by time on the x-axis pitch on the y axis, effectively turning the windows into images.
 
 Each window also carried the id of its source file, which is what made piece-level evaluation (Model Evaluation, below) possible. 
 
 # Model Building
 
-Both models were designed to end in a softmax layer over the four composer classes, and both were trained with the Adam optimizer using sparse categorical cross-entropy as the loss function.
+
 
 The LSTM began with an embedding layer mapping the 129 possible pitch tokens (the 128 MIDI pitches plus one padding index) to a 64-dimensional vector. Two stacked LSTM layers of 128 and 64 units, each with dropout applied, modeled the temporal structure of the sequence. A dense layer of 64 units with a ReLU activation and a further dropout layer preceded the final four-way softmax output. This architecture totaled 160,900 trainable parameters (628.52 KB).
 
 The CNN was built around three convolutional blocks, each combining a 3×3 convolution — with 32, 64, and 128 filters, respectively — batch normalization, and max pooling. A global average pooling layer then collapsed the resulting feature maps before a dense layer of 128 units with a ReLU activation, a dropout layer, and the final softmax output. This architecture totaled 110,596 parameters, of which 110,148 were trainable and 448 were non-trainable batch-normalization statistics (432.02 KB).
 
-Both models were trained with a batch size of 64 for up to 60 epochs, using the same set of callbacks to stabilize training and guard against overfitting: early stopping on validation loss, with a patience of 8 epochs and restoration of the best-performing weights; model checkpointing, to persist the best model to disk; and a learning-rate reduction callback that halved the learning rate after 3 stalled epochs, down to a floor of 1e-5.
+Both were trained with the Adam optimizer using sparse categorical cross-entropy as the loss function. A batch size of 64 for up to 60 epochs was chosen as was the use of early stopping on validation loss, with a patience of 8 epochs and restoration of the best-performing weights, and a learning-rate reduction that halved the learning rate after 3 stalled epochs, down to a floor of 1e-5.
 
 # Model Training
 
@@ -195,20 +197,16 @@ The LSTM selected `lr = 0.001, dropout = 0.3`; the CNN selected `lr = 0.0005, dr
 
 # Conclusion
 
-Both models were able to learn from the data and make predictions with a certain degree of confidence, pointing to a strong validation of the design of the pipeline at every step (data preprocessing, feature extraction, model architecture, and hyperparameters).
+With a piece-level macro F1 of ~.69 for the LSTM and ~.84 for the CNN, we have demonstrated the viability of using deep learning to do composer recognition on MIDI tracks. In addition we have demonstrated the effectiveness of packaging the raw data into fixed length overlapping windows, of using designated data formats (note sequences and 2D snapshots) for each model type and of augmenting the data by using transposition. 
 
-*CNN vs. LSTM gap.* The CNN leads the LSTM by 10.5 points window-level and 9.5 points piece-level accuracy, and on every other metric. The piano-roll representation exposes spatial structure — chord voicing, rhythmic density, register — that the CNN's convolutional filters exploit directly. The LSTM receives only an ordered sequence of pitch integers, discarding duration, rhythm, and harmonic texture; recovering composer style purely from pitch order is a harder inductive problem.
+Our research shows that the CNN leads the LSTM by 10.5 points window-level and 9.5 points piece-level accuracy, and on every other metric. The piano-roll representation exposes spatial structure — chord voicing, rhythmic density, register — that the CNN's convolutional filters exploit directly. The LSTM receives only an ordered sequence of pitch integers, discarding duration, rhythm, and harmonic texture; recovering composer style purely from pitch order is a harder inductive problem.
 
-*Beethoven is the hardest composer for both models — not the rarest one.* Beethoven has the lowest F1 of the four composers for both LSTM (0.52) and CNN (0.72), even though Chopin has fewer training files and windows. The confusion matrices show why: for both models, most of Beethoven's misclassified pieces are predicted as Mozart (10 of 20 LSTM errors, 6 of 10 CNN errors), not Chopin. Beethoven's style bridges Classical and Romantic periods, and empirically the overlap with Mozart's Classical vocabulary is the dominant source of confusion, more than the Romantic overlap with Chopin. This confirms that stylistic ambiguity, not window count, is what makes a class hard once class weighting has equalized the training signal.
+The class-level results showed that sample availability did not automatically translate to better performance, with Beethoven getting the lowest scores on both LSTM (0.52) and CNN (0.72), despite not being the composer with the fewest files and windows (Chopin was). The confusion matrices show that most of Beethoven's misclassified pieces were attributed to Mozart (10 of 20 LSTM errors, 6 of 10 CNN errors), pointing to ambiguity between both composers that the existing setup could not resolve.
 
-*Bach is the easiest composer for both models, despite being the majority class.* Bach reaches F1 0.91 (LSTM) and 0.97 (CNN) — the class weighting (Bach weight ≈ 0.48–0.5, the lowest of the four) successfully prevents the model from simply defaulting to the majority class, while Bach's genuinely distinctive Baroque counterpoint texture (dense, regular polyphony) still makes it the easiest to recognize. Chopin, the rarest class by file count, is *not* the hardest to classify (F1 0.73 LSTM, 0.89 CNN) — further evidence that raw class frequency is not what drives difficulty here.
+Bach scored the highest on both models with F1 0.91 (LSTM) and 0.97 (CNN), showing that its tracks contain a sufficient amount of semantic distinctiveness for the model to make accurate predictions with a high degree of confidence, and that the class weight strategy succeeded in limiting the detrimental effect of its disproportionate representation.
 
-*CNN overfitting pattern.* The CNN's training curves show a volatile first 8 epochs: training accuracy climbs smoothly past 80%, but validation loss spikes as high as 5.1 and validation accuracy briefly collapses to near-chance (0.18–0.20) more than once, before both curves stabilize from epoch ~10 onward and converge to train accuracy ≈0.91 / validation accuracy ≈0.79 by the final epoch. This is consistent with a BatchNormalization-on-sparse-binary-input pathology — batch statistics are poorly estimated on sparse piano rolls early in training — but on the full corpus the pathology resolves rather than persisting, and `ModelCheckpoint(monitor="val_loss")` recovers a stable, low-loss model regardless. The LSTM shows no comparable instability: its training and validation loss/accuracy curves track closely together for all ~43 epochs, indicating a well-regularized fit with little overfitting.
+Going forward, a certain number of actions could be attempted. First, the configuration parameters — such as window length and stride, piano-roll frame rate, and number of LSTM units / CNN filters — could be tuned. Second, the data encoding itself could be enhanced to support more nuance, with richer note tokens combining pitch with duration and velocity, event-based encodings, or multi-channel piano rolls separating instruments. Finally, a hybrid model architecture could be envisioned where the CNN is placed inline and ahead of the LSTM, resulting in a single uninterrupted chain.
 
-*Piece-level evaluation matters.* Averaging window probabilities per file before taking the argmax lifted accuracy by 14–15 points for both models. Individual 100-note or 16-second windows are a noisy, partial view of a piece; a full composition gives the model many independent "votes," and errors that are uncorrelated across windows of the same piece cancel out under averaging. Since a deployed system would classify whole pieces, piece-level accuracy (80.6% LSTM, 90.1% CNN) is the more representative number for this task, not the window-level number.
-
-*Tuning levers identified but deferred* (documented for future work): window length and stride, piano-roll frame rate, number of LSTM units / CNN filters, richer note tokens combining pitch with duration and velocity, event-based encodings, multi-channel piano rolls separating instruments, and hybrid CRNN architectures (convolutions feeding an LSTM).
-*Future improvements.* More composers, k-fold cross-validation for tighter confidence intervals, cross-dataset validation, and explicit handling of polyphony/voice separation.
 
 >**Disclosure**
 >
